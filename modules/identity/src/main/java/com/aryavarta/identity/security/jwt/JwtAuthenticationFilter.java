@@ -17,6 +17,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 @Component
 @RequiredArgsConstructor
@@ -25,18 +26,12 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private final JwtService jwtService;
 
     @Override
-    protected void doFilterInternal(
-            HttpServletRequest request,
-            HttpServletResponse response,
-            FilterChain filterChain
-    ) throws ServletException, IOException {
+    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
 
         try {
             String token = resolveToken(request);
 
-            if (token != null
-                    && jwtService.isValid(token)
-                    && jwtService.isAccessToken(token)) {
+            if (token != null && jwtService.isValid(token) && jwtService.isAccessToken(token)) {
 
                 authenticate(token);
             }
@@ -51,53 +46,40 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private void authenticate(String token) {
 
-        var userId = jwtService.getUserId(token);
-        var tenantId = jwtService.getTenantId(token);
-        var employeeId = jwtService.getEmployeeId(token);
-        var username = jwtService.getUsername(token);
+        UUID userId = jwtService.getUserId(token);
+        UUID tenantId = jwtService.getTenantId(token);
+        UUID employeeId = jwtService.getEmployeeId(token);
+        String username = jwtService.getUsername(token);
 
-        TenantSecurityContext.setTenantId(tenantId);
+        /*
+         * Tenant JWT:
+         *      tenantId != null
+         *
+         * Platform JWT:
+         *      tenantId == null
+         *
+         * Platform requests must not create a tenant context.
+         */
+        if (tenantId != null) {
+            TenantSecurityContext.setTenantId(tenantId);
+        }
 
-        List<SimpleGrantedAuthority> authorities =
-                new ArrayList<>();
+        List<SimpleGrantedAuthority> authorities = new ArrayList<>();
 
-        jwtService.getRoles(token)
-                .stream()
-                .map(role -> new SimpleGrantedAuthority(
-                        role.startsWith("ROLE_")
-                                ? role
-                                : "ROLE_" + role
-                ))
-                .forEach(authorities::add);
+        jwtService.getRoles(token).stream().map(role -> new SimpleGrantedAuthority(role.startsWith("ROLE_") ? role : "ROLE_" + role)).forEach(authorities::add);
 
-        jwtService.getPermissions(token)
-                .stream()
-                .map(SimpleGrantedAuthority::new)
-                .forEach(authorities::add);
+        jwtService.getPermissions(token).stream().map(SimpleGrantedAuthority::new).forEach(authorities::add);
 
-        var principal = new JwtPrincipal(
-                userId,
-                tenantId,
-                employeeId,
-                username
-        );
+        JwtPrincipal principal = new JwtPrincipal(userId, tenantId, employeeId, username);
 
-        var authentication =
-                new UsernamePasswordAuthenticationToken(
-                        principal,
-                        null,
-                        authorities
-                );
+        UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(principal, null, authorities);
 
-        SecurityContextHolder
-                .getContext()
-                .setAuthentication(authentication);
+        SecurityContextHolder.getContext().setAuthentication(authentication);
     }
 
     private String resolveToken(HttpServletRequest request) {
 
-        String authorization =
-                request.getHeader(HttpHeaders.AUTHORIZATION);
+        String authorization = request.getHeader(HttpHeaders.AUTHORIZATION);
 
         if (!StringUtils.hasText(authorization)) {
             return null;

@@ -13,28 +13,7 @@ import lombok.Setter;
 import lombok.experimental.SuperBuilder;
 
 @Entity
-@Table(
-        name = "tenant_setting",
-        indexes = {
-                @Index(
-                        name = "idx_tenant_setting_tenant_id",
-                        columnList = "tenant_id"
-                ),
-                @Index(
-                        name = "idx_tenant_setting_key",
-                        columnList = "tenant_id, setting_key"
-                )
-        },
-        uniqueConstraints = {
-                @UniqueConstraint(
-                        name = "uk_tenant_setting_tenant_key",
-                        columnNames = {
-                                "tenant_id",
-                                "setting_key"
-                        }
-                )
-        }
-)
+@Table(name = "tenant_setting", indexes = {@Index(name = "idx_tenant_setting_tenant_id", columnList = "tenant_id"), @Index(name = "idx_tenant_setting_key", columnList = "tenant_id, setting_key")}, uniqueConstraints = {@UniqueConstraint(name = "uk_tenant_setting_tenant_key", columnNames = {"tenant_id", "setting_key"})})
 @Getter
 @Setter
 @SuperBuilder
@@ -42,35 +21,18 @@ import lombok.experimental.SuperBuilder;
 @AllArgsConstructor
 public class TenantSetting extends TenantAwareEntity {
 
-    @Column(
-            name = "setting_key",
-            nullable = false,
-            length = 150
-    )
+    @Column(name = "setting_key", nullable = false, length = 150)
     private String settingKey;
 
-    @Column(
-            name = "setting_value",
-            columnDefinition = "TEXT"
-    )
+    @Column(name = "setting_value", columnDefinition = "TEXT")
     private String settingValue;
 
-    @Column(
-            name = "data_type",
-            nullable = false,
-            length = 30
-    )
+    @Column(name = "data_type", nullable = false, length = 30)
     private String dataType;
 
-    @Column(
-            name = "description",
-            length = 500
-    )
+    @Column(name = "description", length = 500)
     private String description;
 
-    @Column(
-            name = "encrypted",
-            nullable = false
-    )
+    @Column(name = "encrypted", nullable = false)
     private boolean encrypted;
 }

@@ -39,6 +39,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         // Authentication endpoints
                         .requestMatchers("/api/v1/auth/**").permitAll()
+                        .requestMatchers("/api/v1/platform/bootstrap").permitAll() // for temporary
                         // Health endpoints
                         .requestMatchers("/actuator/health", "/actuator/info").permitAll()
                         // Everything else requires authentication

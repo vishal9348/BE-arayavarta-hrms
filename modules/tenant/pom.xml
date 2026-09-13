@@ -21,5 +21,10 @@
             <artifactId>persistence</artifactId>
             <version>${project.version}</version>
         </dependency>
+        <dependency>
+            <groupId>com.aryavarta</groupId>
+            <artifactId>identity</artifactId>
+            <version>${project.version}</version>
+        </dependency>
     </dependencies>
 </project>

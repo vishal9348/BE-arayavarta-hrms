@@ -41,10 +41,19 @@ public class JwtService {
     }
 
     private String generateToken(JwtTokenType tokenType, UUID userId, UUID tenantId, UUID employeeId, String username, List<String> roles, List<String> permissions, Duration expiration) {
+
         Instant issuedAt = Instant.now();
         Instant expiresAt = issuedAt.plus(expiration);
 
-        var builder = Jwts.builder().issuer(properties.getIssuer()).audience().add(properties.getAudience()).and().subject(userId.toString()).issuedAt(Date.from(issuedAt)).expiration(Date.from(expiresAt)).claim(TOKEN_TYPE_CLAIM, tokenType.name()).claim(TENANT_ID_CLAIM, tenantId.toString()).claim(USER_ID_CLAIM, userId.toString()).claim("username", username);
+        var builder = Jwts.builder().issuer(properties.getIssuer())
+                .audience().add(properties.getAudience()).and().subject(userId.toString())
+                .issuedAt(Date.from(issuedAt))
+                .expiration(Date.from(expiresAt)).claim(TOKEN_TYPE_CLAIM, tokenType.name())
+                .claim(USER_ID_CLAIM, userId.toString()).claim("username", username);
+
+        if (tenantId != null) {
+            builder.claim(TENANT_ID_CLAIM, tenantId.toString());
+        }
 
         if (employeeId != null) {
             builder.claim(EMPLOYEE_ID_CLAIM, employeeId.toString());
@@ -83,7 +92,13 @@ public class JwtService {
     }
 
     public UUID getTenantId(String token) {
-        return UUID.fromString(getRequiredClaim(token, TENANT_ID_CLAIM, String.class));
+        Claims claims = parseToken(token).getPayload();
+
+        String tenantId = claims.get(TENANT_ID_CLAIM, String.class);
+
+        return tenantId != null
+                ? UUID.fromString(tenantId)
+                : null;
     }
 
     public UUID getEmployeeId(String token) {
@@ -145,4 +160,5 @@ public class JwtService {
     private Jws<Claims> parseToken(String token) {
         return Jwts.parser().verifyWith(signingKey).requireIssuer(properties.getIssuer()).requireAudience(properties.getAudience()).build().parseSignedClaims(token);
     }
+
 }
