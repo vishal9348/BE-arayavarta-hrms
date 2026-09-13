@@ -1,0 +1,14 @@
+services:
+  postgres:
+    image: postgres:17
+    container_name: aryavarta-postgres
+    environment:
+      POSTGRES_DB: aryavarta_hrms
+      POSTGRES_USER: aryavarta
+      POSTGRES_PASSWORD: aryavarta
+    ports:
+      - "5432:5432"
+    volumes:
+      - aryavarta-postgres-data:/var/lib/postgresql/data
+volumes:
+  aryavarta-postgres-data:

@@ -1,0 +1,1 @@
+-- Baseline placeholder. Domain-owned migrations can be added under the application's Flyway location.
