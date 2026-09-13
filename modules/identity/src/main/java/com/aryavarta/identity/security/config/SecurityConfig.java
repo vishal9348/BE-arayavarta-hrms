@@ -1,5 +1,6 @@
 package com.aryavarta.identity.security.config;
 
+import com.aryavarta.identity.security.authentication.TenantAuthenticationProvider;
 import com.aryavarta.identity.security.handler.JwtAccessDeniedHandler;
 import com.aryavarta.identity.security.handler.JwtAuthenticationEntryPoint;
 import com.aryavarta.identity.security.jwt.JwtAuthenticationFilter;
@@ -25,6 +26,7 @@ public class SecurityConfig {
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
     private final JwtAuthenticationEntryPoint authenticationEntryPoint;
     private final JwtAccessDeniedHandler accessDeniedHandler;
+    private final TenantAuthenticationProvider tenantAuthenticationProvider;
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -32,6 +34,7 @@ public class SecurityConfig {
         http.csrf(csrf -> csrf.disable())
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .authenticationProvider(tenantAuthenticationProvider)
                 .exceptionHandling(exception -> exception.authenticationEntryPoint(authenticationEntryPoint).accessDeniedHandler(accessDeniedHandler))
                 .authorizeHttpRequests(auth -> auth
                         // Authentication endpoints
